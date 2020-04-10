@@ -122,6 +122,51 @@ OPTIONS:
 `,
 		},
 		{
+			desc: "print help of main command without args or options and with wrapping description",
+			entry: &cli.Command{
+				Description: `this is main command and this description is so long that it will eventually get wrapped if it exceeds 72 characters
+
+also new lines manually inserted must be preserved`,
+				Exec: func(_ cli.Program) error {
+					t := root.T
+					if want, got := "", root.parg1; got != want {
+						t.Fatalf("want %q, got %q", want, got)
+					}
+					return nil
+				},
+				Subcommands: nil,
+			},
+			args:     []string{"test", "-h"},
+			wantCode: 0,
+			wantOut: `test
+
+this is main command and this description is so long that it will
+eventually get wrapped if it exceeds 72 characters
+
+also new lines manually inserted must be preserved
+
+USAGE:
+    test [OPTIONS]
+
+OPTIONS:
+    -h, -help    print help information
+`,
+			wantErr: "",
+			wantCombined: `test
+
+this is main command and this description is so long that it will
+eventually get wrapped if it exceeds 72 characters
+
+also new lines manually inserted must be preserved
+
+USAGE:
+    test [OPTIONS]
+
+OPTIONS:
+    -h, -help    print help information
+`,
+		},
+		{
 			desc: "main command with one optional arg",
 			entry: &cli.Command{
 				Exec: func(_ cli.Program) error {
