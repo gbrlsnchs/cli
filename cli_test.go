@@ -85,6 +85,37 @@ OPTIONS:
 `,
 		},
 		{
+			desc: "print help of main command without args or options and with fixed name",
+			entry: &cli.Command{
+				Exec: func(_ cli.Program) error {
+					t := root.T
+					if want, got := "", root.parg1; got != want {
+						t.Fatalf("want %q, got %q", want, got)
+					}
+					return nil
+				},
+				Subcommands: nil,
+			},
+			opts: []func(*cli.CLI){
+				cli.Name("my-cmd"),
+			},
+			args:     []string{"test", "-h"},
+			wantCode: 0,
+			wantOut: `USAGE:
+    my-cmd [OPTIONS]
+
+OPTIONS:
+    -h, -help    print help information
+`,
+			wantErr: "",
+			wantCombined: `USAGE:
+    my-cmd [OPTIONS]
+
+OPTIONS:
+    -h, -help    print help information
+`,
+		},
+		{
 			desc: "print help of main command without args or options and with description",
 			entry: &cli.Command{
 				Description: "this is main command",
