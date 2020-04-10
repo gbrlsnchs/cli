@@ -172,7 +172,7 @@ func (cli *CLI) parse(ctx context.Context, name string, c *Command, args []strin
 			w = f.Output()
 		}
 		tw := tabwriter.NewWriter(w, 0, 0, 4, ' ', 0)
-		c.writeUsage(tw, name)
+		c.writeUsage(tw, name, help)
 		if err := tw.Flush(); err != nil {
 			panic(err)
 		}
@@ -227,7 +227,7 @@ exec:
 }
 
 func (cli *CLI) printErr(f *flag.FlagSet, err error) {
-	fmt.Fprintf(cli.stderr, "%s: %v\n", cli.name, err)
+	fmt.Fprintf(cli.stderr, "%s: %v\n\n", cli.name, err)
 	f.SetOutput(cli.stderr)
 	f.Usage()
 }
