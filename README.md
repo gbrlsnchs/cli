@@ -112,7 +112,7 @@ func main() {
 	cmdl := cli.New(&cli.Command{
 		Description: `This is a simple program that serves as an example for how to use package cli.
 
-Its commands should not be taken seriously, since they do nothing really great, but serve well for demonstration`,
+Its commands should not be taken seriously, since they do nothing really great, still they serve well for demonstration.`,
 		Options: map[string]cli.Option{
 			"quiet": cli.BoolOption{
 				OptionDetails: cli.OptionDetails{
@@ -191,7 +191,7 @@ This is a simple program that serves as an example for how to use
 package cli.
 
 Its commands should not be taken seriously, since they do nothing really
-great, but serve well for demonstration
+great, still they serve well for demonstration.
 
 USAGE:
     my-cmd [OPTIONS] <COMMAND>
