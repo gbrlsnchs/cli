@@ -64,8 +64,10 @@ func (cli *CLI) ParseAndRunContext(ctx context.Context, args []string) int {
 	if cli.entry == nil {
 		panic(fmt.Errorf("%s: cli: nil entry command", cli.name))
 	}
-	// Strip parent directories from the executable's name.
-	cli.name = filepath.Base(args[0])
+	if cli.name == "" {
+		// Strip parent directories from the executable's name.
+		cli.name = filepath.Base(args[0])
+	}
 	// This buffer allows printing usage errors with the CLI's name as prefix.
 	// Declaring it here prevents from declaring it in every subcommand iteration.
 	buf := bytes.NewBufferString(fmt.Sprintf("%s: ", cli.name))
@@ -132,6 +134,14 @@ func ErrorCode(c int) func(*CLI) {
 func MisuseCode(c int) func(*CLI) {
 	return func(cli *CLI) {
 		cli.codes.misuse = c
+	}
+}
+
+// Name sets a fixed name for the program.
+// The default is the first string from parsed args.
+func Name(s string) func(*CLI) {
+	return func(cli *CLI) {
+		cli.name = s
 	}
 }
 
