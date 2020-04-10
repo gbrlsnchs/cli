@@ -78,6 +78,9 @@ func main() {
 		appcfg = new(appConfig)
 	)
 	cmdl := cli.New(&cli.Command{
+		Description: `This is a simple program that serves as an example for how to use package cli.
+
+Its commands should not be taken seriously, since they do nothing really great, but serve well for demonstration`,
 		Options: map[string]cli.Option{
 			"quiet": cli.BoolOption{
 				OptionDetails: cli.OptionDetails{
@@ -140,7 +143,7 @@ func main() {
 				Exec: root.join.register(appcfg),
 			},
 		},
-	})
+	}, cli.Name("my-cmd"))
 	code := cmdl.ParseAndRun(os.Args)
 	os.Exit(code)
 }

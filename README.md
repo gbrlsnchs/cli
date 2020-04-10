@@ -110,6 +110,9 @@ func main() {
 		appcfg = new(appConfig)
 	)
 	cmdl := cli.New(&cli.Command{
+		Description: `This is a simple program that serves as an example for how to use package cli.
+
+Its commands should not be taken seriously, since they do nothing really great, but serve well for demonstration`,
 		Options: map[string]cli.Option{
 			"quiet": cli.BoolOption{
 				OptionDetails: cli.OptionDetails{
@@ -172,7 +175,7 @@ func main() {
 				Exec: root.join.register(appcfg),
 			},
 		},
-	})
+	}, cli.Name("my-cmd"))
 	code := cmdl.ParseAndRun(os.Args)
 	os.Exit(code)
 }
@@ -183,9 +186,15 @@ func main() {
 <p>
 
 ```shell
-$ my-cmd
+$ go run .examples/full_featured/main.go -h
+This is a simple program that serves as an example for how to use
+package cli.
+
+Its commands should not be taken seriously, since they do nothing really
+great, but serve well for demonstration
+
 USAGE:
-    my-cmd [<OPTIONS>] [<COMMAND>]
+    my-cmd [OPTIONS] <COMMAND>
 
 OPTIONS:
     -h, -help     Print this help message.
@@ -204,9 +213,11 @@ COMMANDS:
 <p>
 
 ```shell
-$ my-cmd hello -h
+$ go run .examples/full_featured/main.go hello -h
+Say hello to someone.
+
 USAGE:
-    hello [<OPTIONS>] <NAME>
+    hello [OPTIONS] <NAME>
 
 OPTIONS:
     -h, -help     Print this help message.
@@ -220,9 +231,11 @@ OPTIONS:
 <p>
 
 ```shell
-$ my-cmd concat -h
+$ go run .examples/full_featured/main.go concat -h
+Concatenate two words.
+
 USAGE:
-    concat [<OPTIONS>] <FIRST WORD> <LAST WORD>
+    concat [OPTIONS] <FIRST WORD> <LAST WORD>
 
 OPTIONS:
     -h, -help    Print this help message.
@@ -235,9 +248,11 @@ OPTIONS:
 <p>
 
 ```shell
-$ my-cmd join -h
+$ go run .examples/full_featured/main.go join -h
+Join strings together.
+
 USAGE:
-    join [<OPTIONS>] <WORD>...
+    join [OPTIONS] <WORD> [...]
 
 OPTIONS:
     -h, -help                     Print this help message.
