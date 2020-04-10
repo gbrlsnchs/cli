@@ -1,6 +1,6 @@
 # cli
 ![Linux, macOS and Windows](https://github.com/gbrlsnchs/cli/workflows/Linux,%20macOS%20and%20Windows/badge.svg)
-[![GoDoc](https://godoc.org/github.com/gbrlsnchs/cli?status.svg)](https://godoc.org/github.com/gbrlsnchs/cli)
+[![GoDoc](https://godoc.org/github.com/gbrlsnchs/cli?status.svg)](https://pkg.go.dev/github.com/gbrlsnchs/cli)
 
 ## About
 This is a library that adds some CLI functionalities on top of [Go's flag package] while preserving the single dash Go-style flags. Some of those functionalities are:
