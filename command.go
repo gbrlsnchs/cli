@@ -25,10 +25,9 @@ type Command struct {
 	Arg         Arg                 // Arg is a positional argument.
 }
 
-func (c *Command) writeUsage(w io.Writer, name string) {
+func (c *Command) writeUsage(w io.Writer, name string, showDesc bool) {
 	// DESCRIPTION
-	if c.Description != "" {
-		fmt.Fprintf(w, "%s\n\n", name)
+	if showDesc && c.Description != "" {
 		wrapWrite(w, c.Description)
 		fmt.Fprint(w, "\n\n")
 	}
@@ -46,7 +45,7 @@ func (c *Command) writeUsage(w io.Writer, name string) {
 	} else if arg := c.Arg; arg != nil {
 		arg.WriteDoc(w)
 	}
-	fmt.Fprint(w, "\n\nOPTIONS:\n")
+	fmt.Fprint(w, "\n\nOPTIONS:\n") // this is always printed, since help option is always present
 	// OPTIONS
 	copts := c.Options
 	optl := make([]string, 0, len(copts))

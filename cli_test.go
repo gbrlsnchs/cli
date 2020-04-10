@@ -130,9 +130,7 @@ OPTIONS:
 			},
 			args:     []string{"test", "-h"},
 			wantCode: 0,
-			wantOut: `test
-
-this is main command
+			wantOut: `this is main command
 
 USAGE:
     test [OPTIONS]
@@ -141,9 +139,7 @@ OPTIONS:
     -h, -help    print help information
 `,
 			wantErr: "",
-			wantCombined: `test
-
-this is main command
+			wantCombined: `this is main command
 
 USAGE:
     test [OPTIONS]
@@ -169,9 +165,7 @@ also new lines manually inserted must be preserved`,
 			},
 			args:     []string{"test", "-h"},
 			wantCode: 0,
-			wantOut: `test
-
-this is main command and this description is so long that it will
+			wantOut: `this is main command and this description is so long that it will
 eventually get wrapped if it exceeds 72 characters
 
 also new lines manually inserted must be preserved
@@ -183,9 +177,7 @@ OPTIONS:
     -h, -help    print help information
 `,
 			wantErr: "",
-			wantCombined: `test
-
-this is main command and this description is so long that it will
+			wantCombined: `this is main command and this description is so long that it will
 eventually get wrapped if it exceeds 72 characters
 
 also new lines manually inserted must be preserved
@@ -350,6 +342,7 @@ OPTIONS:
 			wantCode: 2,
 			wantOut:  "",
 			wantErr: `test: missing required argument: FOO
+
 USAGE:
     test [OPTIONS] <FOO>
 
@@ -357,6 +350,7 @@ OPTIONS:
     -h, -help    print help information
 `,
 			wantCombined: `test: missing required argument: FOO
+
 USAGE:
     test [OPTIONS] <FOO>
 
@@ -680,6 +674,7 @@ OPTIONS:
 			wantCode: 2,
 			wantOut:  "",
 			wantErr: `test: missing required argument: FOO
+
 USAGE:
     test [OPTIONS] <FOO> [...]
 
@@ -687,6 +682,7 @@ OPTIONS:
     -h, -help    print help information
 `,
 			wantCombined: `test: missing required argument: FOO
+
 USAGE:
     test [OPTIONS] <FOO> [...]
 
@@ -908,6 +904,7 @@ OPTIONS:
 		{
 			desc: "subcommand misuse",
 			entry: &cli.Command{
+				Description: "this is a description",
 				Exec: func(_ cli.Program) error {
 					t := root.T
 					if want, got := "", root.parg1; got != want {
@@ -930,6 +927,7 @@ OPTIONS:
 			wantCode: 2,
 			wantOut:  "",
 			wantErr: `test: command provided but not defined: bar
+
 USAGE:
     test [OPTIONS] [COMMAND]
 
@@ -940,6 +938,7 @@ COMMANDS:
     foo    this is foo's description
 `,
 			wantCombined: `test: command provided but not defined: bar
+
 USAGE:
     test [OPTIONS] [COMMAND]
 
@@ -1010,6 +1009,7 @@ testing foo stderr
 			wantCode: 0xABADBABE,
 			wantOut:  "",
 			wantErr: `test: command provided but not defined: bar
+
 USAGE:
     test [OPTIONS] <COMMAND>
 
@@ -1020,6 +1020,7 @@ COMMANDS:
     foo
 `,
 			wantCombined: `test: command provided but not defined: bar
+
 USAGE:
     test [OPTIONS] <COMMAND>
 
