@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 	"io"
-	"strings"
+	"sort"
 )
 
 // ExecFunc is a function that receives a program information
@@ -18,27 +18,61 @@ type ExecFunc func(Program) error
 // When a command has one or more subcommands, its Arg will be totally ignored.
 type Command struct {
 	Description string              // Description describes what the command does.
-	Usage       string              // Usage shows how to use the command.
 	Exec        ExecFunc            // Exec is the function run by the command.
 	Options     map[string]Option   // Options are the command's options (also known as flags).
 	Subcommands map[string]*Command // Subcommands store the command's subcommands.
 	Arg         Arg                 // Arg is a positional argument.
 }
 
-func (c *Command) setDefaultUsage(name string) {
-	if c.Usage != "" {
-		return
+func (c *Command) writeUsage(w io.Writer, name string) {
+	// DESCRIPTION
+	if c.Description != "" {
+		fmt.Fprintf(w, "%s\n\n%s\n\n", name, c.Description)
 	}
-	bd := new(strings.Builder)
-	fmt.Fprint(bd, name)
-	cmdc := len(c.Subcommands)
-	fmt.Fprint(bd, " [<OPTIONS>]")
-	if cmdc > 0 {
-		fmt.Fprint(bd, " [<COMMAND>]")
-	} else if c.Arg != nil {
-		c.Arg.WriteDoc(bd)
+	// USAGE (A.K.A. SUMMARY)
+	fmt.Fprintln(w, "USAGE:")
+	fmt.Fprintf(w, "\t%s [OPTIONS]", name)
+	nsub := len(c.Subcommands)
+	if nsub > 0 {
+		fmt.Fprint(w, " ")
+		cstart, cend := "<", ">"
+		if c.Exec != nil {
+			cstart, cend = "[", "]"
+		}
+		fmt.Fprintf(w, "%sCOMMAND%s", cstart, cend)
+	} else if arg := c.Arg; arg != nil {
+		arg.WriteDoc(w)
 	}
-	c.Usage = bd.String()
+	fmt.Fprint(w, "\n\nOPTIONS:\n")
+	// OPTIONS
+	copts := c.Options
+	optl := make([]string, 0, len(copts))
+	for name := range copts {
+		optl = append(optl, name)
+	}
+	sort.Strings(optl)
+	for _, o := range optl {
+		fmt.Fprint(w, "\t")
+		copts[o].WriteDoc(w, o)
+		fmt.Fprintln(w)
+	}
+	// COMMANDS
+	if nsub > 0 {
+		fmt.Fprint(w, "\nCOMMANDS:\n")
+		ccmds := c.Subcommands
+		subl := make([]string, 0, nsub)
+		for name := range ccmds {
+			subl = append(subl, name)
+		}
+		sort.Strings(subl)
+		for _, c := range subl {
+			fmt.Fprintf(w, "\t%s", c)
+			if desc := ccmds[c].Description; desc != "" {
+				fmt.Fprintf(w, "\t%s", desc)
+			}
+			fmt.Fprintln(w)
+		}
+	}
 }
 
 // Program carries information about a running command.

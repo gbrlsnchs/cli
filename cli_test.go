@@ -71,14 +71,51 @@ func testCommandLineParseAndRun(t *testing.T) {
 			args:     []string{"test", "-h"},
 			wantCode: 0,
 			wantOut: `USAGE:
-    test [<OPTIONS>]
+    test [OPTIONS]
 
 OPTIONS:
     -h, -help    print help information
 `,
 			wantErr: "",
 			wantCombined: `USAGE:
-    test [<OPTIONS>]
+    test [OPTIONS]
+
+OPTIONS:
+    -h, -help    print help information
+`,
+		},
+		{
+			desc: "print help of main command without args or options and with description",
+			entry: &cli.Command{
+				Description: "this is main command",
+				Exec: func(_ cli.Program) error {
+					t := root.T
+					if want, got := "", root.parg1; got != want {
+						t.Fatalf("want %q, got %q", want, got)
+					}
+					return nil
+				},
+				Subcommands: nil,
+			},
+			args:     []string{"test", "-h"},
+			wantCode: 0,
+			wantOut: `test
+
+this is main command
+
+USAGE:
+    test [OPTIONS]
+
+OPTIONS:
+    -h, -help    print help information
+`,
+			wantErr: "",
+			wantCombined: `test
+
+this is main command
+
+USAGE:
+    test [OPTIONS]
 
 OPTIONS:
     -h, -help    print help information
@@ -125,14 +162,14 @@ OPTIONS:
 			args:     []string{"test", "-h"},
 			wantCode: 0,
 			wantOut: `USAGE:
-    test [<OPTIONS>] [<FOO>]
+    test [OPTIONS] [FOO]
 
 OPTIONS:
     -h, -help    print help information
 `,
 			wantErr: "",
 			wantCombined: `USAGE:
-    test [<OPTIONS>] [<FOO>]
+    test [OPTIONS] [FOO]
 
 OPTIONS:
     -h, -help    print help information
@@ -203,14 +240,14 @@ OPTIONS:
 			args:     []string{"test", "-h"},
 			wantCode: 0,
 			wantOut: `USAGE:
-    test [<OPTIONS>] <FOO>
+    test [OPTIONS] <FOO>
 
 OPTIONS:
     -h, -help    print help information
 `,
 			wantErr: "",
 			wantCombined: `USAGE:
-    test [<OPTIONS>] <FOO>
+    test [OPTIONS] <FOO>
 
 OPTIONS:
     -h, -help    print help information
@@ -238,14 +275,14 @@ OPTIONS:
 			wantOut:  "",
 			wantErr: `test: missing required argument: FOO
 USAGE:
-    test [<OPTIONS>] <FOO>
+    test [OPTIONS] <FOO>
 
 OPTIONS:
     -h, -help    print help information
 `,
 			wantCombined: `test: missing required argument: FOO
 USAGE:
-    test [<OPTIONS>] <FOO>
+    test [OPTIONS] <FOO>
 
 OPTIONS:
     -h, -help    print help information
@@ -306,14 +343,14 @@ OPTIONS:
 			args:     []string{"test", "-h"},
 			wantCode: 0,
 			wantOut: `USAGE:
-    test [<OPTIONS>] [<FOO> [<BAR>]]
+    test [OPTIONS] [FOO [BAR]]
 
 OPTIONS:
     -h, -help    print help information
 `,
 			wantErr: "",
 			wantCombined: `USAGE:
-    test [<OPTIONS>] [<FOO> [<BAR>]]
+    test [OPTIONS] [FOO [BAR]]
 
 OPTIONS:
     -h, -help    print help information
@@ -405,14 +442,14 @@ OPTIONS:
 			args:     []string{"test", "-h"},
 			wantCode: 0,
 			wantOut: `USAGE:
-    test [<OPTIONS>] <FOO> [<BAR>]
+    test [OPTIONS] <FOO> [BAR]
 
 OPTIONS:
     -h, -help    print help information
 `,
 			wantErr: "",
 			wantCombined: `USAGE:
-    test [<OPTIONS>] <FOO> [<BAR>]
+    test [OPTIONS] <FOO> [BAR]
 
 OPTIONS:
     -h, -help    print help information
@@ -510,14 +547,105 @@ OPTIONS:
 			args:     []string{"test", "-h"},
 			wantCode: 0,
 			wantOut: `USAGE:
-    test [<OPTIONS>] [<FOO>...]
+    test [OPTIONS] [FOO ...]
 
 OPTIONS:
     -h, -help    print help information
 `,
 			wantErr: "",
 			wantCombined: `USAGE:
-    test [<OPTIONS>] [<FOO>...]
+    test [OPTIONS] [FOO ...]
+
+OPTIONS:
+    -h, -help    print help information
+`,
+		},
+		{
+			desc: "main command with one required repeating arg",
+			entry: &cli.Command{
+				Exec: func(_ cli.Program) error {
+					t := root.T
+					if want, got := []string{"foo"}, root.rargs; !cmp.Equal(got, want) {
+						t.Fatalf("(-want +got):\n%s", cmp.Diff(want, got))
+					}
+					return nil
+				},
+				Subcommands: nil,
+				Arg: cli.RepeatingArg{
+					Label:     "FOO",
+					Required:  true,
+					Recipient: &root.rargs,
+				},
+			},
+			args:         []string{"test", "foo"},
+			wantCode:     0,
+			wantOut:      "",
+			wantErr:      "",
+			wantCombined: "",
+		},
+		{
+			desc: "main command with required repeating arg missing",
+			entry: &cli.Command{
+				Exec: func(_ cli.Program) error {
+					t := root.T
+					if want, got := []string{"foo"}, root.rargs; !cmp.Equal(got, want) {
+						t.Fatalf("(-want +got):\n%s", cmp.Diff(want, got))
+					}
+					return nil
+				},
+				Subcommands: nil,
+				Arg: cli.RepeatingArg{
+					Label:     "FOO",
+					Required:  true,
+					Recipient: &root.rargs,
+				},
+			},
+			args:     []string{"test"},
+			wantCode: 2,
+			wantOut:  "",
+			wantErr: `test: missing required argument: FOO
+USAGE:
+    test [OPTIONS] <FOO> [...]
+
+OPTIONS:
+    -h, -help    print help information
+`,
+			wantCombined: `test: missing required argument: FOO
+USAGE:
+    test [OPTIONS] <FOO> [...]
+
+OPTIONS:
+    -h, -help    print help information
+`,
+		},
+		{
+			desc: "print help of main command with one required repeating arg",
+			entry: &cli.Command{
+				Exec: func(_ cli.Program) error {
+					t := root.T
+					if want, got := ([]string)(nil), root.rargs; !cmp.Equal(got, want) {
+						t.Fatalf("(-want +got):\n%s", cmp.Diff(want, got))
+					}
+					return nil
+				},
+				Subcommands: nil,
+				Arg: cli.RepeatingArg{
+					Label:     "FOO",
+					Required:  true,
+					Recipient: &root.rargs,
+				},
+			},
+			args:     []string{"test", "-h"},
+			wantCode: 0,
+			wantOut: `USAGE:
+    test [OPTIONS] <FOO> [...]
+
+OPTIONS:
+    -h, -help    print help information
+`,
+			wantErr: "",
+			wantCombined: `USAGE:
+    test [OPTIONS] <FOO> [...]
 
 OPTIONS:
     -h, -help    print help information
@@ -678,7 +806,7 @@ OPTIONS:
 			args:     []string{"test", "-h"},
 			wantCode: 0,
 			wantOut: `USAGE:
-    test [<OPTIONS>]
+    test [OPTIONS]
 
 OPTIONS:
     -b, -bool <TRUE|FALSE>        pass a boolean here
@@ -690,7 +818,7 @@ OPTIONS:
 `,
 			wantErr: "",
 			wantCombined: `USAGE:
-    test [<OPTIONS>]
+    test [OPTIONS]
 
 OPTIONS:
     -b, -bool <TRUE|FALSE>        pass a boolean here
@@ -727,7 +855,7 @@ OPTIONS:
 			wantOut:  "",
 			wantErr: `test: command provided but not defined: bar
 USAGE:
-    test [<OPTIONS>] [<COMMAND>]
+    test [OPTIONS] [COMMAND]
 
 OPTIONS:
     -h, -help    print help information
@@ -737,7 +865,7 @@ COMMANDS:
 `,
 			wantCombined: `test: command provided but not defined: bar
 USAGE:
-    test [<OPTIONS>] [<COMMAND>]
+    test [OPTIONS] [COMMAND]
 
 OPTIONS:
     -h, -help    print help information
@@ -807,7 +935,7 @@ testing foo stderr
 			wantOut:  "",
 			wantErr: `test: command provided but not defined: bar
 USAGE:
-    test [<OPTIONS>] [<COMMAND>]
+    test [OPTIONS] <COMMAND>
 
 OPTIONS:
     -h, -help    print help information
@@ -817,7 +945,7 @@ COMMANDS:
 `,
 			wantCombined: `test: command provided but not defined: bar
 USAGE:
-    test [<OPTIONS>] [<COMMAND>]
+    test [OPTIONS] <COMMAND>
 
 OPTIONS:
     -h, -help    print help information
