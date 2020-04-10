@@ -32,6 +32,7 @@ type CLI struct {
 	entry          *Command
 	stdout, stderr io.Writer
 	helptxt        string
+	codes          struct{ err, misuse int }
 }
 
 // New instantiates a new command-line interface with sane defaults,
@@ -42,6 +43,7 @@ func New(entry *Command, opts ...func(*CLI)) *CLI {
 		stdout:  os.Stdout,
 		stderr:  os.Stderr,
 		helptxt: "Print this help message.",
+		codes:   struct{ err, misuse int }{1, 2},
 	}
 	for _, o := range opts {
 		o(cli)
@@ -69,7 +71,7 @@ func (cli *CLI) ParseAndRunContext(ctx context.Context, args []string) int {
 	// Declaring it here prevents from declaring it in every subcommand iteration.
 	buf := bytes.NewBufferString(fmt.Sprintf("%s: ", cli.name))
 	var (
-		code = 0 // TODO: custom success
+		code = 0 // success should always be 0, of course
 		err  error
 		lw   = &lazyWriter{stdout: cli.stdout, stderr: cli.stderr}
 	)
@@ -90,10 +92,10 @@ func (cli *CLI) ParseAndRunContext(ctx context.Context, args []string) int {
 	if err != nil {
 		if errors.Is(err, errUnknown) {
 			lw.flush()
-			return 2
+			return cli.codes.misuse
 		}
 		fmt.Fprintf(lw.stderr, "%v: %v\n", cli.name, err)
-		code = 1
+		code = cli.codes.err
 	}
 	lw.flush()
 	return code
@@ -117,6 +119,20 @@ func Stderr(w io.Writer) func(*CLI) {
 func HelpDescription(s string) func(*CLI) {
 	return func(cli *CLI) {
 		cli.helptxt = s
+	}
+}
+
+// ErrorCode sets a different error code for a CLI. The default is 1.
+func ErrorCode(c int) func(*CLI) {
+	return func(cli *CLI) {
+		cli.codes.err = c
+	}
+}
+
+// MisuseCode sets a different misuse code for a CLI. The default is 2.
+func MisuseCode(c int) func(*CLI) {
+	return func(cli *CLI) {
+		cli.codes.misuse = c
 	}
 }
 

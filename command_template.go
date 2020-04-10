@@ -15,7 +15,7 @@ var usageTemplate = fmt.Sprintf(
 		"\nOPTIONS:\n" +
 		"{{range .Options}}\t{{.Description}}\n{{end}}" +
 		"{{if .Command.Subcommands}}\nCOMMANDS:\n{{end}}" +
-		"{{range $key, $value := .Command.Subcommands}}\t{{$key}}\t{{.Description}}\n{{end}}",
+		"{{range $key, $value := .Command.Subcommands}}\t{{$key}}{{if .Description}}\t{{end}}{{.Description}}\n{{end}}",
 )
 
 type commandTemplate struct {

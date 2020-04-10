@@ -31,6 +31,7 @@ func testCommandLineParseAndRun(t *testing.T) {
 	testCases := []struct {
 		desc         string
 		entry        *cli.Command
+		opts         []func(*cli.CLI)
 		args         []string
 		wantCode     int
 		wantOut      string
@@ -777,6 +778,54 @@ testing foo stdout
 testing foo stderr
 `,
 		},
+		{
+			desc: "custom error code",
+			entry: &cli.Command{
+				Exec: func(_ cli.Program) error { return errors.New("foo") },
+			},
+			opts: []func(*cli.CLI){
+				cli.ErrorCode(0xDEADC0DE),
+			},
+			args:         []string{"test"},
+			wantCode:     0xDEADC0DE,
+			wantOut:      "",
+			wantErr:      "test: foo\n",
+			wantCombined: "test: foo\n",
+		},
+		{
+			desc: "custom misuse code",
+			entry: &cli.Command{
+				Subcommands: map[string]*cli.Command{
+					"foo": new(cli.Command),
+				},
+			},
+			opts: []func(*cli.CLI){
+				cli.MisuseCode(0xABADBABE),
+			},
+			args:     []string{"test", "bar"},
+			wantCode: 0xABADBABE,
+			wantOut:  "",
+			wantErr: `test: command provided but not defined: bar
+USAGE:
+    test [<OPTIONS>] [<COMMAND>]
+
+OPTIONS:
+    -h, -help    print help information
+
+COMMANDS:
+    foo
+`,
+			wantCombined: `test: command provided but not defined: bar
+USAGE:
+    test [<OPTIONS>] [<COMMAND>]
+
+OPTIONS:
+    -h, -help    print help information
+
+COMMANDS:
+    foo
+`,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -784,8 +833,7 @@ testing foo stderr
 				root = testCommand{T: t} // reset root
 			}()
 			var stdout, stderr, combined strings.Builder
-			cli := cli.New(
-				tc.entry,
+			opts := []func(*cli.CLI){
 				cli.Stdout(
 					io.MultiWriter(&stdout, &combined),
 				),
@@ -793,6 +841,11 @@ testing foo stderr
 					io.MultiWriter(&stderr, &combined),
 				),
 				cli.HelpDescription("print help information"),
+			}
+			opts = append(opts, tc.opts...)
+			cli := cli.New(
+				tc.entry,
+				opts...,
 			)
 			code := cli.ParseAndRun(tc.args)
 			if want, got := tc.wantCode, code; got != want {
