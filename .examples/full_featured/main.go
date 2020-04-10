@@ -14,14 +14,21 @@ type appConfig struct {
 	quiet bool
 }
 
+// copy returns a copy of cfg, thus not allowing the original configuration
+// to be modified by registering functions.
+// This is one way to simulate a const reference, which, although modifiable,
+// won't interfere with the original instance, so modifying it is harmless.
+func (cfg *appConfig) copy() appConfig { return *cfg }
+
 // helloCmd says hello to someone. Toggle upper to scream.
 type helloCmd struct {
 	name  string
 	upper bool
 }
 
-func (cmd *helloCmd) register(appcfg *appConfig) cli.ExecFunc {
+func (cmd *helloCmd) register(getcfg func() appConfig) cli.ExecFunc {
 	return func(prg cli.Program) error {
+		appcfg := getcfg()
 		s := cmd.name
 		if cmd.upper {
 			s = strings.ToUpper(s)
@@ -39,8 +46,9 @@ type concatCmd struct {
 	second string
 }
 
-func (cmd *concatCmd) register(appcfg *appConfig) cli.ExecFunc {
+func (cmd *concatCmd) register(getcfg func() appConfig) cli.ExecFunc {
 	return func(prg cli.Program) error {
+		appcfg := getcfg()
 		if !appcfg.quiet {
 			fmt.Fprintf(prg.Stdout(), "%s %s\n", cmd.first, cmd.second)
 		}
@@ -54,8 +62,9 @@ type joinCmd struct {
 	sep   string
 }
 
-func (cmd *joinCmd) register(appcfg *appConfig) cli.ExecFunc {
+func (cmd *joinCmd) register(getcfg func() appConfig) cli.ExecFunc {
 	return func(prg cli.Program) error {
+		appcfg := getcfg()
 		if !appcfg.quiet {
 			s := strings.Join(cmd.words, cmd.sep)
 			fmt.Fprintln(prg.Stdout(), s)
@@ -75,7 +84,7 @@ type rootCmd struct {
 func main() {
 	var (
 		root   rootCmd
-		appcfg = new(appConfig)
+		appcfg appConfig
 	)
 	cmdl := cli.New(&cli.Command{
 		Description: `This is a simple program that serves as an example for how to use package cli.
@@ -106,7 +115,7 @@ Its commands should not be taken seriously, since they do nothing really great, 
 						Recipient: &root.hello.upper,
 					},
 				},
-				Exec: root.hello.register(appcfg),
+				Exec: root.hello.register(appcfg.copy),
 			},
 			"concat": {
 				Description: "Concatenate two words.",
@@ -120,7 +129,7 @@ Its commands should not be taken seriously, since they do nothing really great, 
 						Recipient: &root.concat.second,
 					},
 				},
-				Exec: root.concat.register(appcfg),
+				Exec: root.concat.register(appcfg.copy),
 			},
 			"join": {
 				Description: "Join strings together.",
@@ -140,7 +149,7 @@ Its commands should not be taken seriously, since they do nothing really great, 
 						DefValue:  ",",
 					},
 				},
-				Exec: root.join.register(appcfg),
+				Exec: root.join.register(appcfg.copy),
 			},
 		},
 	}, cli.Name("my-cmd"))
