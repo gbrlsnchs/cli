@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strings"
 )
 
 // ExecFunc is a function that receives a program information
@@ -27,7 +28,9 @@ type Command struct {
 func (c *Command) writeUsage(w io.Writer, name string) {
 	// DESCRIPTION
 	if c.Description != "" {
-		fmt.Fprintf(w, "%s\n\n%s\n\n", name, c.Description)
+		fmt.Fprintf(w, "%s\n\n", name)
+		wrapWrite(w, c.Description)
+		fmt.Fprint(w, "\n\n")
 	}
 	// USAGE (A.K.A. SUMMARY)
 	fmt.Fprintln(w, "USAGE:")
@@ -80,4 +83,30 @@ type Program interface {
 	Name() string
 	Stdout() io.Writer
 	Stderr() io.Writer
+}
+
+func wrapWrite(w io.Writer, line string) {
+	paragraphs := strings.Split(line, "\n")
+	for i, p := range paragraphs {
+		words := strings.Split(p, " ")
+		first := words[0]
+		n := len(first)
+		const limit = 72
+		fmt.Fprint(w, words[0])
+		for i, s := range words[1:] {
+			spacing := " "
+			n += 1 + len(s) // spacing + word
+			if n > limit {
+				n = 0 // reset characters count
+				spacing = "\n"
+			} else if i == len(words)-1 {
+				spacing = ""
+			}
+			fmt.Fprintf(w, "%s%s", spacing, s)
+		}
+		if i == len(paragraphs)-1 {
+			continue
+		}
+		fmt.Fprintln(w)
+	}
 }
