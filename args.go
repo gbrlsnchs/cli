@@ -33,10 +33,11 @@ func (arg StringArg) AppendTo(a *ArgList) {
 func (arg StringArg) WriteDoc(w io.Writer) {
 	fmt.Fprintf(w, " ")
 	if !arg.Required {
-		fmt.Fprint(w, "[")
+		fmt.Fprintf(w, "[%s", arg.Label)
 		defer fmt.Fprint(w, "]")
+	} else {
+		fmt.Fprintf(w, "<%s>", arg.Label)
 	}
-	fmt.Fprintf(w, "<%s>", arg.Label)
 	if arg.Next != nil {
 		arg.Next.WriteDoc(w)
 	}
@@ -59,10 +60,10 @@ func (arg RepeatingArg) AppendTo(a *ArgList) {
 func (arg RepeatingArg) WriteDoc(w io.Writer) {
 	fmt.Fprintf(w, " ")
 	if !arg.Required {
-		fmt.Fprint(w, "[")
-		defer fmt.Fprint(w, "]")
+		fmt.Fprintf(w, "[%s ...]", arg.Label)
+		return
 	}
-	fmt.Fprintf(w, "<%s>...", arg.Label)
+	fmt.Fprintf(w, "<%s> [...]", arg.Label)
 }
 
 type argument struct {

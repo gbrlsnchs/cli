@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"text/tabwriter"
-	"text/template"
 )
 
 var errUnknown = errors.New("unknown command or flag")
@@ -157,23 +156,14 @@ func (cli *CLI) parse(ctx context.Context, name string, c *Command, args []strin
 	}
 	// The usage function shows the short, less complete description, in order to not be confuse
 	// when a user types a wrong flag.
-	c.setDefaultUsage(name)
 	f.Usage = func() {
-		t, err := template.New(name).Parse(usageTemplate)
-		if err != nil {
-			panic(err)
-		}
 		w := cli.stdout
 		if !help {
 			w = f.Output()
 		}
 		tw := tabwriter.NewWriter(w, 0, 0, 4, ' ', 0)
-		tmpl := buildTemplate(name, c)
-		err = t.Execute(tw, tmpl)
-		if err != nil {
-			panic(err)
-		}
-		if err = tw.Flush(); err != nil {
+		c.writeUsage(tw, name)
+		if err := tw.Flush(); err != nil {
 			panic(err)
 		}
 	}
