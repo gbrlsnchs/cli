@@ -7,21 +7,21 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestCommaSepList(t *testing.T) {
+func TestCommaSepOptionList(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
 		testCases := []struct {
 			input string
-			want  cliutil.CommaSepList
+			want  cliutil.CommaSepOptionList
 		}{
-			{"", cliutil.CommaSepList{}},
-			{"foo", cliutil.CommaSepList{"foo"}},
-			{"foo,bar", cliutil.CommaSepList{"foo", "bar"}},
-			{"foo,bar,baz", cliutil.CommaSepList{"foo", "bar", "baz"}},
-			{"foo,,baz", cliutil.CommaSepList{"foo", "baz"}},
+			{"", cliutil.CommaSepOptionList{}},
+			{"foo", cliutil.CommaSepOptionList{"foo"}},
+			{"foo,bar", cliutil.CommaSepOptionList{"foo", "bar"}},
+			{"foo,bar,baz", cliutil.CommaSepOptionList{"foo", "bar", "baz"}},
+			{"foo,,baz", cliutil.CommaSepOptionList{"foo", "baz"}},
 		}
 		for _, tc := range testCases {
 			t.Run("", func(t *testing.T) {
-				cs := make(cliutil.CommaSepList, 0)
+				cs := make(cliutil.CommaSepOptionList, 0)
 				err := cs.Set(tc.input)
 				if want, got := (error)(nil), err; got != want {
 					t.Fatalf("want %v, got %v", want, got)
@@ -34,13 +34,13 @@ func TestCommaSepList(t *testing.T) {
 	})
 	t.Run("String", func(t *testing.T) {
 		testCases := []struct {
-			cs   cliutil.CommaSepList
+			cs   cliutil.CommaSepOptionList
 			want string
 		}{
-			{cliutil.CommaSepList{}, ""},
-			{cliutil.CommaSepList{"foo"}, "foo"},
-			{cliutil.CommaSepList{"foo", "bar"}, "foo,bar"},
-			{cliutil.CommaSepList{"foo", "bar", "baz"}, "foo,bar,baz"},
+			{cliutil.CommaSepOptionList{}, ""},
+			{cliutil.CommaSepOptionList{"foo"}, "foo"},
+			{cliutil.CommaSepOptionList{"foo", "bar"}, "foo,bar"},
+			{cliutil.CommaSepOptionList{"foo", "bar", "baz"}, "foo,bar,baz"},
 		}
 		for _, tc := range testCases {
 			t.Run("", func(t *testing.T) {
