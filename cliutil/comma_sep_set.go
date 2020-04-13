@@ -5,11 +5,11 @@ import (
 	"strings"
 )
 
-// CommaSet is a custom option type for comma-separated sets.
-type CommaSet map[string]struct{}
+// CommaSepSet is a custom option type for comma-separated sets.
+type CommaSepSet map[string]struct{}
 
 // Set sets a comma-separated string to a set.
-func (cs *CommaSet) Set(value string) error {
+func (cs *CommaSepSet) Set(value string) error {
 	if value == "" {
 		return nil
 	}
@@ -27,7 +27,7 @@ func (cs *CommaSet) Set(value string) error {
 	return nil
 }
 
-func (cs CommaSet) String() string {
+func (cs CommaSepSet) String() string {
 	arr := make([]string, 0, len(cs))
 	for k := range cs {
 		if k == "" {

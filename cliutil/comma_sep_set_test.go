@@ -7,33 +7,33 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestCommaSet(t *testing.T) {
+func TestCommaSepSet(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
 		testCases := []struct {
 			input string
-			want  cliutil.CommaSet
+			want  cliutil.CommaSepSet
 		}{
-			{"", cliutil.CommaSet{}},
-			{"foo", cliutil.CommaSet{
+			{"", cliutil.CommaSepSet{}},
+			{"foo", cliutil.CommaSepSet{
 				"foo": struct{}{},
 			}},
-			{"foo,bar", cliutil.CommaSet{
+			{"foo,bar", cliutil.CommaSepSet{
 				"foo": struct{}{},
 				"bar": struct{}{},
 			}},
-			{"foo,bar,baz", cliutil.CommaSet{
+			{"foo,bar,baz", cliutil.CommaSepSet{
 				"foo": struct{}{},
 				"bar": struct{}{},
 				"baz": struct{}{},
 			}},
-			{"foo,,baz", cliutil.CommaSet{
+			{"foo,,baz", cliutil.CommaSepSet{
 				"foo": struct{}{},
 				"baz": struct{}{},
 			}},
 		}
 		for _, tc := range testCases {
 			t.Run("", func(t *testing.T) {
-				cs := make(cliutil.CommaSet)
+				cs := make(cliutil.CommaSepSet)
 				err := cs.Set(tc.input)
 				if want, got := (error)(nil), err; got != want {
 					t.Fatalf("want %v, got %v", want, got)
@@ -46,23 +46,23 @@ func TestCommaSet(t *testing.T) {
 	})
 	t.Run("String", func(t *testing.T) {
 		testCases := []struct {
-			cs   cliutil.CommaSet
+			cs   cliutil.CommaSepSet
 			want string
 		}{
-			{cliutil.CommaSet{}, ""},
-			{cliutil.CommaSet{
+			{cliutil.CommaSepSet{}, ""},
+			{cliutil.CommaSepSet{
 				"foo": struct{}{},
 			}, "foo"},
-			{cliutil.CommaSet{
+			{cliutil.CommaSepSet{
 				"foo": struct{}{},
 				"bar": struct{}{},
 			}, "bar,foo"},
-			{cliutil.CommaSet{
+			{cliutil.CommaSepSet{
 				"foo": struct{}{},
 				"bar": struct{}{},
 				"baz": struct{}{},
 			}, "bar,baz,foo"},
-			{cliutil.CommaSet{
+			{cliutil.CommaSepSet{
 				"foo": struct{}{},
 				"":    struct{}{},
 				"baz": struct{}{},
