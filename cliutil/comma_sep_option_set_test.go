@@ -7,33 +7,33 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestCommaSepSet(t *testing.T) {
+func TestCommaSepOptionSet(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
 		testCases := []struct {
 			input string
-			want  cliutil.CommaSepSet
+			want  cliutil.CommaSepOptionSet
 		}{
-			{"", cliutil.CommaSepSet{}},
-			{"foo", cliutil.CommaSepSet{
+			{"", cliutil.CommaSepOptionSet{}},
+			{"foo", cliutil.CommaSepOptionSet{
 				"foo": struct{}{},
 			}},
-			{"foo,bar", cliutil.CommaSepSet{
+			{"foo,bar", cliutil.CommaSepOptionSet{
 				"foo": struct{}{},
 				"bar": struct{}{},
 			}},
-			{"foo,bar,baz", cliutil.CommaSepSet{
+			{"foo,bar,baz", cliutil.CommaSepOptionSet{
 				"foo": struct{}{},
 				"bar": struct{}{},
 				"baz": struct{}{},
 			}},
-			{"foo,,baz", cliutil.CommaSepSet{
+			{"foo,,baz", cliutil.CommaSepOptionSet{
 				"foo": struct{}{},
 				"baz": struct{}{},
 			}},
 		}
 		for _, tc := range testCases {
 			t.Run("", func(t *testing.T) {
-				cs := make(cliutil.CommaSepSet)
+				cs := make(cliutil.CommaSepOptionSet)
 				err := cs.Set(tc.input)
 				if want, got := (error)(nil), err; got != want {
 					t.Fatalf("want %v, got %v", want, got)
@@ -46,23 +46,23 @@ func TestCommaSepSet(t *testing.T) {
 	})
 	t.Run("String", func(t *testing.T) {
 		testCases := []struct {
-			cs   cliutil.CommaSepSet
+			cs   cliutil.CommaSepOptionSet
 			want string
 		}{
-			{cliutil.CommaSepSet{}, ""},
-			{cliutil.CommaSepSet{
+			{cliutil.CommaSepOptionSet{}, ""},
+			{cliutil.CommaSepOptionSet{
 				"foo": struct{}{},
 			}, "foo"},
-			{cliutil.CommaSepSet{
+			{cliutil.CommaSepOptionSet{
 				"foo": struct{}{},
 				"bar": struct{}{},
 			}, "bar,foo"},
-			{cliutil.CommaSepSet{
+			{cliutil.CommaSepOptionSet{
 				"foo": struct{}{},
 				"bar": struct{}{},
 				"baz": struct{}{},
 			}, "bar,baz,foo"},
-			{cliutil.CommaSepSet{
+			{cliutil.CommaSepOptionSet{
 				"foo": struct{}{},
 				"":    struct{}{},
 				"baz": struct{}{},
