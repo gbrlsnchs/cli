@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestCommandLine(t *testing.T) {
-	t.Run("ParseAndRun", testCommandLineParseAndRun)
+	testCommandLineParseAndRun(t)
 }
 
 func testCommandLineParseAndRun(t *testing.T) {
@@ -37,6 +38,7 @@ func testCommandLineParseAndRun(t *testing.T) {
 		wantOut      string
 		wantErr      string
 		wantCombined string
+		cancelCtx    bool
 	}{
 		{
 			desc: "main command without args or options",
@@ -1031,42 +1033,119 @@ COMMANDS:
     foo
 `,
 		},
+		{
+			desc: "context timeout",
+			entry: &cli.Command{
+				Exec: func(_ cli.Program) error {
+					t := root.T
+					if want, got := "", root.parg1; got != want {
+						t.Fatalf("want %q, got %q", want, got)
+					}
+					return nil
+				},
+				Subcommands: map[string]*cli.Command{
+					"foo": {
+						Description: "this is foo's description",
+						Exec: func(prg cli.Program) error {
+							fmt.Fprintln(prg.Stdout(), "testing foo stdout")
+							fmt.Fprintln(prg.Stderr(), "testing foo stderr")
+							return nil
+						},
+					},
+				},
+			},
+			args:         []string{"test", "foo"},
+			wantCode:     1,
+			wantOut:      "",
+			wantErr:      "test: context canceled\n",
+			wantCombined: "test: context canceled\n",
+			cancelCtx:    true,
+		},
 	}
-	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
-			defer func() {
-				root = testCommand{T: t} // reset root
-			}()
-			var stdout, stderr, combined strings.Builder
-			opts := []func(*cli.CLI){
-				cli.Stdout(
-					io.MultiWriter(&stdout, &combined),
-				),
-				cli.Stderr(
-					io.MultiWriter(&stderr, &combined),
-				),
-				cli.HelpDescription("print help information"),
-			}
-			opts = append(opts, tc.opts...)
-			cli := cli.New(
-				tc.entry,
-				opts...,
-			)
-			code := cli.ParseAndRun(tc.args)
-			if want, got := tc.wantCode, code; got != want {
-				t.Fatalf("want %d, got %d", want, got)
-			}
-			if want, got := tc.wantOut, stdout.String(); got != want {
-				t.Fatalf("STDOUT (-want +got):\n%s", cmp.Diff(want, got))
-			}
-			if want, got := tc.wantErr, stderr.String(); got != want {
-				t.Fatalf("STDERR (-want +got):\n%s", cmp.Diff(want, got))
-			}
-			if want, got := tc.wantCombined, combined.String(); got != want {
-				t.Fatalf("STDOUT + STDERR (-want +got):\n%s", cmp.Diff(want, got))
-			}
-		})
-	}
+	t.Run("ParseAndRun", func(t *testing.T) {
+		for _, tc := range testCases {
+			t.Run(tc.desc, func(t *testing.T) {
+				if tc.cancelCtx {
+					// Skip context cancellation tests.
+					t.SkipNow()
+				}
+				defer func() {
+					root = testCommand{T: t} // reset root
+				}()
+				var stdout, stderr, combined strings.Builder
+				opts := []func(*cli.CLI){
+					cli.Stdout(
+						io.MultiWriter(&stdout, &combined),
+					),
+					cli.Stderr(
+						io.MultiWriter(&stderr, &combined),
+					),
+					cli.HelpDescription("print help information"),
+				}
+				opts = append(opts, tc.opts...)
+				cli := cli.New(
+					tc.entry,
+					opts...,
+				)
+				code := cli.ParseAndRun(tc.args)
+				if want, got := tc.wantCode, code; got != want {
+					t.Fatalf("want %d, got %d", want, got)
+				}
+				if want, got := tc.wantOut, stdout.String(); got != want {
+					t.Fatalf("STDOUT (-want +got):\n%s", cmp.Diff(want, got))
+				}
+				if want, got := tc.wantErr, stderr.String(); got != want {
+					t.Fatalf("STDERR (-want +got):\n%s", cmp.Diff(want, got))
+				}
+				if want, got := tc.wantCombined, combined.String(); got != want {
+					t.Fatalf("STDOUT + STDERR (-want +got):\n%s", cmp.Diff(want, got))
+				}
+			})
+		}
+	})
+	t.Run("ParseAndRunContext", func(t *testing.T) {
+		for _, tc := range testCases {
+			t.Run(tc.desc, func(t *testing.T) {
+				defer func() {
+					root = testCommand{T: t} // reset root
+				}()
+				var stdout, stderr, combined strings.Builder
+				opts := []func(*cli.CLI){
+					cli.Stdout(
+						io.MultiWriter(&stdout, &combined),
+					),
+					cli.Stderr(
+						io.MultiWriter(&stderr, &combined),
+					),
+					cli.HelpDescription("print help information"),
+				}
+				opts = append(opts, tc.opts...)
+				cli := cli.New(
+					tc.entry,
+					opts...,
+				)
+				ctx := context.Background()
+				if tc.cancelCtx {
+					var cancel context.CancelFunc
+					ctx, cancel = context.WithCancel(ctx)
+					cancel()
+				}
+				code := cli.ParseAndRunContext(ctx, tc.args)
+				if want, got := tc.wantCode, code; got != want {
+					t.Fatalf("want %d, got %d", want, got)
+				}
+				if want, got := tc.wantOut, stdout.String(); got != want {
+					t.Fatalf("STDOUT (-want +got):\n%s", cmp.Diff(want, got))
+				}
+				if want, got := tc.wantErr, stderr.String(); got != want {
+					t.Fatalf("STDERR (-want +got):\n%s", cmp.Diff(want, got))
+				}
+				if want, got := tc.wantCombined, combined.String(); got != want {
+					t.Fatalf("STDOUT + STDERR (-want +got):\n%s", cmp.Diff(want, got))
+				}
+			})
+		}
+	})
 }
 
 func newDullStr() *string {
