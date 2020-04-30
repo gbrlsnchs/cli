@@ -8,40 +8,40 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestAppendingOption(t *testing.T) {
+func TestMultiValueOptionList(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
 		testCases := []struct {
 			input []string
-			want  cliutil.AppendingOption
+			want  cliutil.MultiValueOptionList
 		}{
-			{[]string{""}, cliutil.AppendingOption{}},
-			{[]string{"foo"}, cliutil.AppendingOption{"foo"}},
-			{[]string{"foo", "bar"}, cliutil.AppendingOption{"foo", "bar"}},
-			{[]string{"foo", "bar", "baz"}, cliutil.AppendingOption{"foo", "bar", "baz"}},
-			{[]string{"foo", "", "baz"}, cliutil.AppendingOption{"foo", "baz"}},
+			{[]string{""}, cliutil.MultiValueOptionList{}},
+			{[]string{"foo"}, cliutil.MultiValueOptionList{"foo"}},
+			{[]string{"foo", "bar"}, cliutil.MultiValueOptionList{"foo", "bar"}},
+			{[]string{"foo", "bar", "baz"}, cliutil.MultiValueOptionList{"foo", "bar", "baz"}},
+			{[]string{"foo", "", "baz"}, cliutil.MultiValueOptionList{"foo", "baz"}},
 		}
 		for _, tc := range testCases {
 			t.Run("", func(t *testing.T) {
-				ao := make(cliutil.AppendingOption, 0)
+				mvl := make(cliutil.MultiValueOptionList, 0)
 				for _, in := range tc.input {
-					err := ao.Set(in)
+					err := mvl.Set(in)
 					if want, got := (error)(nil), err; got != want {
 						t.Fatalf("want %v, got %v", want, got)
 					}
 				}
-				if want, got := tc.want, ao; !cmp.Equal(got, want) {
-					t.Fatalf("(*AppendingOption).Set mismatch (-want +got):\n%s", cmp.Diff(want, got))
+				if want, got := tc.want, mvl; !cmp.Equal(got, want) {
+					t.Fatalf("(*MultiValueOption).Set mismatch (-want +got):\n%s", cmp.Diff(want, got))
 				}
 			})
 		}
 	})
 	t.Run("String", func(t *testing.T) {
 		testCases := []struct {
-			ao cliutil.AppendingOption
+			ao cliutil.MultiValueOptionList
 		}{
-			{cliutil.AppendingOption{}},
-			{cliutil.AppendingOption{"foo"}},
-			{cliutil.AppendingOption{"foo", "bar"}},
+			{cliutil.MultiValueOptionList{}},
+			{cliutil.MultiValueOptionList{"foo"}},
+			{cliutil.MultiValueOptionList{"foo", "bar"}},
 		}
 		for _, tc := range testCases {
 			t.Run("", func(t *testing.T) {
