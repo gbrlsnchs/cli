@@ -11,15 +11,14 @@ func (cl *CommaSepOptionList) Set(value string) error {
 		return nil
 	}
 	values := strings.Split(value, ",")
-	if *cl == nil {
-		*cl = make(CommaSepOptionList, 0, len(values))
-	}
+	l := make([]string, 0, len(values))
 	for _, v := range values {
 		if v == "" {
 			continue
 		}
-		*cl = append(*cl, v)
+		l = append(l, v)
 	}
+	*cl = l
 	return nil
 }
 

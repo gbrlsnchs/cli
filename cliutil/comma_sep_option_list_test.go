@@ -31,6 +31,14 @@ func TestCommaSepOptionList(t *testing.T) {
 				}
 			})
 		}
+		t.Run("reallocate", func(t *testing.T) {
+			cl := make(cliutil.CommaSepOptionList, 0)
+			cl.Set("foo,bar")
+			cl.Set("baz,qux")
+			if want, got := (cliutil.CommaSepOptionList{"baz", "qux"}), cl; !cmp.Equal(got, want) {
+				t.Fatalf("(*CommaSepOptionSet).Set doesn't reallocate the underlying set:\n%s", cmp.Diff(want, got))
+			}
+		})
 	})
 	t.Run("String", func(t *testing.T) {
 		testCases := []struct {

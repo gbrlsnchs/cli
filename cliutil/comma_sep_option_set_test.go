@@ -39,10 +39,18 @@ func TestCommaSepOptionSet(t *testing.T) {
 					t.Fatalf("want %v, got %v", want, got)
 				}
 				if want, got := tc.want, cs; !cmp.Equal(got, want) {
-					t.Fatalf("(*CommaSet).Set mismatch (-want +got):\n%s", cmp.Diff(want, got))
+					t.Fatalf("(*CommaSepOptionSet).Set mismatch (-want +got):\n%s", cmp.Diff(want, got))
 				}
 			})
 		}
+		t.Run("reallocate", func(t *testing.T) {
+			cs := make(cliutil.CommaSepOptionSet)
+			cs.Set("foo,bar")
+			cs.Set("baz,qux")
+			if want, got := (cliutil.CommaSepOptionSet{"baz": {}, "qux": {}}), cs; !cmp.Equal(got, want) {
+				t.Fatalf("(*CommaSepOptionSet).Set doesn't reallocate the underlying set:\n%s", cmp.Diff(want, got))
+			}
+		})
 	})
 	t.Run("String", func(t *testing.T) {
 		testCases := []struct {

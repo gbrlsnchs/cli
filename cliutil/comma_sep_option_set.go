@@ -14,16 +14,14 @@ func (cs *CommaSepOptionSet) Set(value string) error {
 		return nil
 	}
 	values := strings.Split(value, ",")
-	if *cs == nil {
-		*cs = make(map[string]struct{}, len(values))
-	}
-	m := *cs
+	m := make(map[string]struct{}, len(values)) // always reset the set
 	for _, v := range values {
 		if v == "" {
 			continue
 		}
 		m[v] = struct{}{}
 	}
+	*cs = m
 	return nil
 }
 
